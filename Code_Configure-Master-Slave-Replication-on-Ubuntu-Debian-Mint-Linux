@@ -1,0 +1,74 @@
+In this video :
+* Master Server : 
+	- Hostname : ubt22-1
+	- IP address : 192.168.1.101
+	- Server-ID : 101
+
+* Slave Server : 
+	- Hostname : ubt22-2
+	- IP address : 192.168.1.102
+	- Server-ID : 102
+
+##############################
+##### ON MASTER SERVER #####
+
+[mysqld]
+###
+# Unique ID of the MySQL server. 
+# This ID can not be re-used in any nodes in the cluster.
+server-id = 101
+###
+# This is the file in which all the replication information is stored.
+log-bin = /var/log/mysql/mysql-bin.log
+###
+# Size of the binlog file.
+max_binlog_size = 1024M
+###
+pid-file = /var/run/mysqld/mysqld.pid
+socket = /var/run/mysqld/mysqld.sock
+datadir = /var/lib/mysql
+log-error = /var/log/mysql/error.log
+tmpdir = /tmp
+binlog_format = ROW
+sync_binlog = 1
+expire-logs-days = 5
+slow_query_log=1
+slow_query_log_file=/var/lib/mysql/mysqld-slow.log
+
+	create user rep_user@IP_of_Slave_Server identified by 'rep_user_PWD';
+
+	alter user rep_user@IP_of_Slave_Server identified with mysql_native_password by 'rep_user_PWD';
+	
+	grant replication slave on *.* to rep_user@IP_of_Slave_Server;
+
+
+##############################
+##### ON SLAVE SERVER #####
+
+###
+# Unique ID of the MySQL server. 
+# This ID can not be re-used in any nodes in the cluster.
+server-id = 102
+###
+# This is the file in which all the replication information is stored.
+log_bin = /var/log/mysql/mysql-bin.log
+###
+# Slave node is set to read-only mode
+read_only = 1
+###
+# Enables slow query log
+slow_query_log = 2
+###
+# Size of the binlog file.
+max_binlog_size = 1024M
+tmpdir = /tmp
+binlog_format = ROW
+sync_binlog = 1
+expire-logs-days = 5
+
+
+CHANGE MASTER TO MASTER_HOST='IP_of_Master_Server',
+MASTER_USER='MySQL_user_of_the_Master_Server',
+MASTER_PASSWORD='Replication_user_password',
+MASTER_LOG_FILE='Log_on_Master_Server',
+MASTER_LOG_POS=Position_of_log_file_on_Master_Server;
